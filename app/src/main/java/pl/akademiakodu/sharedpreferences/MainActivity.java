@@ -1,6 +1,8 @@
 package pl.akademiakodu.sharedpreferences;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,8 +13,10 @@ import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity {
 
-    // pole SharedPreferences
-    SharedPreferences preferences;
+    // robimy globalne pola i przypisujemy w onCreate zgodnie z zasadami CLEAN CODE zeby nie powtarzac tego w metodach
+    // begin() musi byc uruchomione przed kazda transakcja
+    FragmentManager fragmentManager;
+    FragmentTransaction fragmentTransaction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,38 +24,36 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        // inicjalizacja poniżej, Mode_Private oznacza ze tylko nasze activity ma do tego dostep
-        preferences = getSharedPreferences("loginData", Activity.MODE_PRIVATE);
+        // usluga systemowa musi miec swojego managera
+        fragmentManager = getFragmentManager();
     }
 
-    // obsluga - metoda do zapisywania danych
-    private void saveData(){
-        // zapisujemy na edytorze
-        SharedPreferences.Editor editor = preferences.edit();
-        // zapisujemy tak jak w hashmapie - klucz i wartość
-        editor.putString("login", "michal");
-        editor.putString("password", "mojehaslo");
-        // editor.remove(); - usuwa dany klucz
-        // commit() zapisuje na dysku telefonu
-        editor.commit();
-        // editor.apply(); - zapisanie danych do tła
-    }
 
-    // obsluga - odczyt danych
-    private void loadData(){
-        // podajemy klucz i wartość domyślną jeśli nie znajdzie klucza, czyli np brakLoginu
-        String login = preferences.getString("login", "BrakLoginu");
-        String password = preferences.getString("password", "BrakHasla");
-        Log.e("debug", login + " : "+password);
-    }
 
+    // zostawiam stare id przyciskow do fragmentow
+    // pilnowac zgodnosci importow FragmentManagera albo support albo zwykly nie mozna mieszac
     @OnClick(R.id.save)
-    public void onClickSave(){
-        saveData();
+    public void onBackClick(){
+        // transkacja wymiany fragmentow
+        fragmentTransaction = fragmentManager.beginTransaction();
+        // podajemy layout do ktorego wstrzykujemy i konstruktor fragmnetu wstrzykiwanego - pusty wygenerowany automatcznie
+        /* wstrzykujemy za pomoca replace (zamienia fragmenty kasujac je - podmienia je ze soba)
+        lub add (naklada nowy nie kasujac starego - dlatego przycisk z czerwonego dziala na zielonym*/
+        fragmentTransaction.replace(R.id.frameLayout, new GreenFragment());
+        // akceptujemy transakcje jeszcze
+        fragmentTransaction.commit();
     }
     @OnClick(R.id.load)
-    public void onClickLoad(){
-        loadData();
+    public void onNextClick(){
+        // transkacja wymiany fragmentow
+        fragmentTransaction = fragmentManager.beginTransaction();
+        // podajemy layout do ktorego wstrzykujemy (jego id) i konstruktor fragmnetu wstrzykiwanego - pusty wygenerowany automatcznie
+        // podajemy layout do ktorego wstrzykujemy i konstruktor fragmnetu wstrzykiwanego - pusty wygenerowany automatcznie
+        /* wstrzykujemy za pomoca replace (zamienia fragmenty kasujac je - podmienia je ze soba)
+        lub add (naklada nowy nie kasujac starego - dlatego przycisk z czerwonego dziala na zielonym*/
+        fragmentTransaction.replace(R.id.frameLayout, new RedFragment());
+        // akceptujemy transakcje jeszcze
+        fragmentTransaction.commit();
     }
 
 }
